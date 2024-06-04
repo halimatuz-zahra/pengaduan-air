@@ -9,7 +9,6 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] != 'admin') {
 }
 
 $username = $_SESSION['username'];
-$userid = get_user_id($username);
 $complaints = get_all_complaints();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -24,12 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($_FILES['evidence']['tmp_name'], $evidence);
     }
 
-    print_r('Complain ID: '.$complaint_id);
-    print_r('User ID: '.$userid);
-    print_r('Status: '.$status);
-    print_r('Response: '.$response);
-    print_r('Evidence: '.$evidence);
-    if (create_response($complaint_id, $userid, $status, $response, $evidence)) {
+    if (create_response($complaint_id, $username, $status, $response, $evidence)) {
         header('Location: dashboard_admin.php');
         exit;
     } else {
@@ -41,112 +35,98 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Admin</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <style>
-  body {
-    display: flex;
-    min-height: 100vh;
-    flex-direction: column;
-  }
-
-  .sidebar {
-    height: 100%;
-    background-color: #343a40;
-    padding: 20px;
-    position: fixed;
-  }
-
-  .sidebar .nav-link {
-    color: #fff;
-  }
-
-  .sidebar .nav-link.active {
-    background-color: #495057;
-  }
-
-  .content {
-    margin-left: 250px;
-    padding: 20px;
-  }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Font Awesome for icons -->
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .sidebar {
+            height: 100%;
+            background-color: #343a40;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+        }
+        .sidebar .nav-link.active {
+            background-color: #495057;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
 </head>
-
 <body>
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">Dashboard</span>
-      <div class="d-flex">
-        <span class="navbar-text me-3"><?php echo $username; ?></span>
-        <a href="logout.php" class="btn btn-danger">Logout</a>
-      </div>
-    </div>
-  </nav>
-  <div class="d-flex">
-    <div class="sidebar">
-      <nav class="nav flex-column">
-        <a class="nav-link active" aria-current="page" href="dashboard_admin.php"><i
-            class="fas fa-exclamation-circle me-2"></i>Balasan</a></li>
-        <a class="nav-link" href="profile.php"><i class="fas fa-user me-2"></i>Profil Pengguna</a>
-      </nav>
-    </div>
-    <div class="content">
-      <h2>Balasan</h2>
-      <?php if (!empty($message)): ?>
-      <div class="alert alert-danger"><?php echo $message; ?></div>
-      <?php endif; ?>
-      <?php if (count($complaints) > 0): ?>
-      <ul class="list-group">
-        <?php foreach ($complaints as $complaint): ?>
-        <li class="list-group-item">
-          <h5><?php echo htmlspecialchars($complaint['location']); ?></h5>
-          <p><?php echo htmlspecialchars($complaint['description']); ?></p>
-          <small>Kondisi: <?php echo htmlspecialchars($complaint['water_condition']); ?></small><br>
-          <small>Dibuat pada: <?php echo htmlspecialchars($complaint['created_at']); ?></small>
-          <form method="POST" class="mt-3">
-            <input type="hidden" name="complaint_id" value="<?php echo $complaint['complaint_id']; ?>">
-            <div class="mb-3">
-              <label for="status" class="form-label">Status</label>
-              <select class="form-select" id="status" name="status" required>
-                <option value="belum ditanggapi">Belum ditanggapi</option>
-                <option value="dalam proses">Dalam proses</option>
-                <option value="sudah selesai">Sudah selesai</option>
-              </select>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <div class="d-flex">
+                <span class="navbar-text me-3"><?php echo $username; ?></span>
+                <a href="logout.php" class="btn btn-danger">Logout</a>
             </div>
-            <div class="mb-3">
-              <label for="response" class="form-label">Tanggapan</label>
-              <textarea class="form-control" id="response" name="response" rows="3" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="evidence" class="form-label">Bukti Pendukung</label>
-              <input type="file" class="form-control" id="evidence" name="evidence">
-            </div>
-            <button type="submit" class="btn btn-primary">Kirim Tanggapan</button>
-          </form>
-        </li>
-        <?php endforeach; ?>
-      </ul>
-      <?php else: ?>
-      <p>Tidak ada pengaduan.</p>
-      <?php endif; ?>
+        </div>
+    </nav>
+    <div class="d-flex">
+        <div class="sidebar">
+            <nav class="nav flex-column">
+                    <a class="nav-link active" aria-current="page" href="dashboard_admin.php"><i class="fas fa-exclamation-circle me-2"></i>Balasan</a></li>
+                    <a class="nav-link" href="profile.php"><i class="fas fa-user me-2"></i>Profil Pengguna</a>
+            </nav>
+        </div>
+        <div class="content">
+            <h2>Balasan</h2>
+            <?php if (!empty($message)): ?>
+                <div class="alert alert-danger"><?php echo $message; ?></div>
+            <?php endif; ?>
+            <?php if (count($complaints) > 0): ?>
+                <ul class="list-group">
+                    <?php foreach ($complaints as $complaint): ?>
+                        <li class="list-group-item">
+                            <h5><?php echo htmlspecialchars($complaint['location']); ?></h5>
+                            <p><?php echo htmlspecialchars($complaint['description']); ?></p>
+                            <small>Kondisi: <?php echo htmlspecialchars($complaint['water_condition']); ?></small><br>
+                            <small>Dibuat pada: <?php echo htmlspecialchars($complaint['created_at']); ?></small>
+                            <form method="POST" class="mt-3">
+                                <input type="hidden" name="complaint_id" value="<?php echo $complaint['complaint_id']; ?>">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="belum ditanggapi">Belum ditanggapi</option>
+                                        <option value="dalam proses">Dalam proses</option>
+                                        <option value="sudah selesai">Sudah selesai</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="response" class="form-label">Tanggapan</label>
+                                    <textarea class="form-control" id="response" name="response" rows="3" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="evidence" class="form-label">Bukti Pendukung</label>
+                                    <input type="file" class="form-control" id="evidence" name="evidence">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Kirim Tanggapan</button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p>Tidak ada pengaduan.</p>
+            <?php endif; ?>
+        </div>
     </div>
-  </div>
-  <!-- footer -->
-  <footer class="mt-auto bg-dark p-3 text-center" style="color: white; font-weight: bold;">
-    <p>Web Pengaduan Air &copy; 2024</p>
-  </footer>
-  <!-- akhir footer -->
-  <script>
-  if (new URL(window.location.href).searchParams.get('alert') === 'sukses menanggapi') {
-    alert('Response created successfully!');
-  }
-  </script>
+    <!-- footer -->
+    <footer class="mt-auto bg-dark p-3 text-center" style="color: white; font-weight: bold;">
+        <p>Web Pengaduan Air &copy; 2024</p>
+    </footer>
+    <!-- akhir footer -->
 </body>
-
 </html>

@@ -55,10 +55,10 @@ function get_all_complaints() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function create_response($complaint_id, $userid, $status, $response, $evidence) {
+function create_response($complaint_id, $username, $status, $response, $evidence) {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO responses (complaint_id, admin_id, status, description, evidence) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$complaint_id, $userid, $status, $response, $evidence]);
+    $stmt = $pdo->prepare("INSERT INTO responses (complaint_id, responder, status, response, evidence) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$complaint_id, $username, $status, $response, $evidence]);
 
     $stmt = $pdo->prepare("UPDATE complaints SET status = ? WHERE complaint_id = ?");
     return $stmt->execute([$status, $complaint_id]);
@@ -66,12 +66,7 @@ function create_response($complaint_id, $userid, $status, $response, $evidence) 
 
 function get_complaint_responses($complaint_id) {
     global $pdo;
-    $stmt = $pdo->prepare(
-        "SELECT responses.*, users.name AS admin_name
-        FROM responses
-        JOIN users ON responses.admin_id = users.user_id
-        WHERE responses.complaint_id = ?"
-    );
+    $stmt = $pdo->prepare("SELECT * FROM responses WHERE complaint_id = ?");
     $stmt->execute([$complaint_id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
