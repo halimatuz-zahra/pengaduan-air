@@ -83,8 +83,7 @@ $complaints = get_user_complaints($user_id); // Dapatkan pengaduan user
                         <li class="list-group-item">
                             <a href="edit_pengaduan.php?id=<?php echo $complaint['complaint_id']?>" class="btn btn-warning">Edit</a>
                             <a href="delete_pengaduan.php?id=<?php echo $complaint['complaint_id']?>" class="btn btn-danger">Hapus</a>
-                            <a href="download.php?url=<?php echo $complaint['evidence']?>" class="btn btn-primary mb-3">Download</a>
-                            <!-- <button id="downloadBtn" class="btn btn-warning">Download Struk</button> -->
+                            <a href="download.php?url=<?php echo $complaint['evidence']?>" class="btn btn-secondary">Download</a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -98,14 +97,5 @@ $complaints = get_user_complaints($user_id); // Dapatkan pengaduan user
         <p>Web Pengaduan Air &copy; 2024</p>
     </footer>
     <!-- akhir footer -->
-    <script>
-        document.querySelectorAll('#downloadBtn').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var index = this.getAttribute('data-index');
-                var element = document.querySelectorAll('.list-group-item')[index * 2]; // Adjust index for the complaint item
-                html2pdf().from(element).save();
-            });
-        });
-    </script>
 </body>
 </html>
